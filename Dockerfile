@@ -26,7 +26,7 @@ RUN groupadd -r -g 200 seat && useradd --no-log-init -r -g seat -u 200 seat
 
 # Install SeAT
 RUN cd /var/www && \
-    composer create-project eveseat/seat:5.0.x-dev --stability dev --no-scripts --no-dev --no-ansi --no-progress && \
+    composer create-project "sabersma/seat:dev-hotfix/5.0.2" --stability dev --no-scripts --no-dev --no-ansi --no-progress && \
     composer clear-cache --no-ansi && \
     # Fix up the source permissions to be owned by www-data
     chown -R seat:seat /var/www/seat && \
