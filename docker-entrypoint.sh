@@ -47,10 +47,10 @@ function install_plugins() {
         #   ref: https://github.com/composer/composer/issues/1874
 
         # Require the plugins from the environment variable.
-        composer require ${plugins} --no-install
+        composer require ${plugins} --no-install --ignore-platform-reqs
 
         # Update the plugins.
-        composer update ${plugins} --no-scripts --no-dev --no-ansi --no-progress
+        composer update ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs
     fi
 
     echo "Completed plugins processing"
@@ -121,7 +121,7 @@ function register_dev_packages() {
     php -r 'require "vendor/autoload.php"; $config = require "config/app.php.bak"; $override = json_decode(file_get_contents("packages/override.json")); $config["providers"] = array_merge($config["providers"], $override->providers ?? []); file_put_contents("config/app.php", "<?php return " . var_export($config, true) . ";");'
 
     # Refresh composer setup (symlinks local path repos)
-    composer update eveseat/eveapi eveseat/notifications --no-scripts --no-dev --no-ansi --no-progress
+    composer update eveseat/eveapi eveseat/notifications --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs
 }
 
 # cache_and_docs_generation

@@ -1,5 +1,9 @@
 FROM php:8.4-alpine AS seat-core
 
+# Optional GitHub token for private repositories (composer reads COMPOSER_AUTH env)
+ARG COMPOSER_AUTH
+ENV COMPOSER_AUTH=${COMPOSER_AUTH}
+
 # Composer and Git (git needed for VCS repositories)
 RUN apk add --no-cache git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
