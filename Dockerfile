@@ -1,7 +1,8 @@
 FROM php:8.4-alpine AS seat-core
 
-# Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+# Composer and Git (git needed for VCS repositories)
+RUN apk add --no-cache git && \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
     --filename=composer && hash -r
 
 # Create SeAT package with its dependencies
@@ -12,6 +13,13 @@ RUN composer create-project eveseat/seat:^5.0 --stability dev --no-scripts --no-
     cd seat && \
     php -r "file_exists('.env') || copy('.env.example', '.env');" && \
     mv /tmp/seat-version /seat/storage/version
+
+# Override eveapi and notifications with custom GitHub feature/sfi branches
+RUN cd /seat && \
+    composer config repositories.eveapi vcs https://github.com/sabersma/eveseat-eveapi && \
+    composer config repositories.notifications vcs https://github.com/sabersma/eveseat-notifications && \
+    composer require eveseat/eveapi:dev-feature/sfi eveseat/notifications:dev-feature/sfi \
+        --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs --with-all-dependencies
 
 FROM php:8.4-apache-bookworm AS seat
 

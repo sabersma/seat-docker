@@ -73,8 +73,42 @@ function register_dev_packages() {
         cp composer.json composer.json.bak
     fi
 
-    # use JQ to merge both overrider and sourcing composer.json
-    jq -s '.[0] as $composer | .[1] as $overrider | $composer | ."autoload-dev"."psr-4" = $composer."autoload-dev"."psr-4" + $overrider.autoload' composer.json.bak packages/override.json > composer.json
+    # use PHP to merge repositories, require, and autoload from override.json
+    php -r '
+        $composer = json_decode(file_get_contents("composer.json.bak"), true);
+        $override = json_decode(file_get_contents("packages/override.json"), true);
+
+        // Merge repositories (override repos take precedence by being first)
+        if (isset($override["repositories"])) {
+            $composer["repositories"] = array_merge(
+                $override["repositories"],
+                $composer["repositories"] ?? []
+            );
+        }
+
+        // Override package versions to use local/dev versions
+        if (isset($override["require"])) {
+            foreach ($override["require"] as $pkg => $version) {
+                $composer["require"][$pkg] = $version;
+            }
+        }
+
+        // Merge autoload-dev psr-4 mappings
+        if (isset($override["autoload"])) {
+            if (!isset($composer["autoload-dev"])) {
+                $composer["autoload-dev"] = ["psr-4" => []];
+            }
+            foreach ($override["autoload"] as $prefix => $paths) {
+                if (is_array($paths)) {
+                    $composer["autoload-dev"]["psr-4"][$prefix] = $paths;
+                } else {
+                    $composer["autoload-dev"]["psr-4"][$prefix] = $paths;
+                }
+            }
+        }
+
+        file_put_contents("composer.json", json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    '
 
     echo "Registering providers manually..."
 
@@ -86,8 +120,8 @@ function register_dev_packages() {
     # use PHP in order to register providers
     php -r 'require "vendor/autoload.php"; $config = require "config/app.php.bak"; $override = json_decode(file_get_contents("packages/override.json")); $config["providers"] = array_merge($config["providers"], $override->providers ?? []); file_put_contents("config/app.php", "<?php return " . var_export($config, true) . ";");'
 
-    # Refresh composer setup
-    composer update
+    # Refresh composer setup (symlinks local path repos)
+    composer update eveseat/eveapi eveseat/notifications --no-scripts --no-dev --no-ansi --no-progress
 }
 
 # cache_and_docs_generation

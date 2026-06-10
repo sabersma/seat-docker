@@ -6,7 +6,7 @@ services:
     command: web
     volumes:
       - "seat-storage:/var/www/seat/storage"
-      - ./packages:/var/www/seat/packages:ro  # development only
+      # - ./packages:/var/www/seat/packages:ro  # development only (path repos)
     env_file:
       - .env
     depends_on:
@@ -26,7 +26,7 @@ services:
     command: worker
     volumes:
       - "seat-storage:/var/www/seat/storage"
-      - ./packages:/var/www/seat/packages:ro  # development only
+      # - ./packages:/var/www/seat/packages:ro  # development only (path repos)
     env_file:
       - .env
     depends_on:
@@ -47,7 +47,7 @@ services:
     command: cron
     volumes:
       - "seat-storage:/var/www/seat/storage"
-      - ./packages:/var/www/seat/packages:ro  # development only
+      # - ./packages:/var/www/seat/packages:ro  # development only (path repos)
     env_file:
       - .env
     depends_on:
