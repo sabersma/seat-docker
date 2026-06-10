@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "eveseat/eveapi": "dev-feature/sfi",
-        "eveseat/notifications": "dev-feature/sfi"
+        "eveseat/eveapi": "dev-feature/sfi as 5.0.x-dev",
+        "eveseat/notifications": "dev-feature/sfi as 5.0.x-dev"
     }
 }
