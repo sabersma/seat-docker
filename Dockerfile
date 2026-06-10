@@ -9,19 +9,17 @@ RUN apk add --no-cache git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
     --filename=composer && hash -r
 
-# Create SeAT project from forked feature/sfi branch, with custom packages
+# Clone SeAT from fork, configure VCS repos for custom packages, then install
 COPY version /tmp/seat-version
-RUN composer create-project eveseat/seat:"dev-feature/sfi as 5.0.x-dev" \
-        --repository '{"type":"vcs","url":"https://github.com/sabersma/seat"}' \
-        --stability dev --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs && \
-    composer clear-cache --no-ansi && \
-    cd seat && \
-    php -r "file_exists('.env') || copy('.env.example', '.env');" && \
+RUN git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.git /seat && \
+    cd /seat && \
     mv /tmp/seat-version /seat/storage/version && \
+    php -r "file_exists('.env') || copy('.env.example', '.env');" && \
+    rm -f composer.lock && \
     composer config repositories.eveapi vcs https://github.com/sabersma/eveseat-eveapi && \
     composer config repositories.notifications vcs https://github.com/sabersma/eveseat-notifications && \
-    composer require "eveseat/eveapi:dev-feature/sfi as 5.0.x-dev" "eveseat/notifications:dev-feature/sfi as 5.0.x-dev" \
-        --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs --with-all-dependencies
+    composer install --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs && \
+    composer clear-cache --no-ansi
 
 FROM php:8.4-apache-bookworm AS seat
 
