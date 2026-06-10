@@ -43,14 +43,10 @@ function install_plugins() {
 
         echo "Installing plugins: ${SEAT_PLUGINS}"
 
-        # Why are we doing it like this?
-        #   ref: https://github.com/composer/composer/issues/1874
-
-        # Require the plugins from the environment variable.
-        composer require ${plugins} --no-install --ignore-platform-reqs
-
-        # Update the plugins.
-        composer update ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs
+        # Install plugins in one step (composer issue #1874 is long fixed).
+        # Using require directly instead of require+update avoids triggering
+        # unnecessary VCS repository checks for already-installed packages.
+        composer require ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs --with-all-dependencies
     fi
 
     echo "Completed plugins processing"

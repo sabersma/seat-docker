@@ -11,7 +11,9 @@ RUN apk add --no-cache git && \
 
 # Clone SeAT from fork, configure VCS repo for custom notifications package, then install
 COPY version /tmp/seat-version
-RUN git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.git /seat && \
+RUN git config --global url."https://github.com/".insteadOf git@github.com: && \
+    git config --global url."https://".insteadOf git:// && \
+    git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.git /seat && \
     cd /seat && \
     mv /tmp/seat-version /seat/storage/version && \
     php -r "file_exists('.env') || copy('.env.example', '.env');" && \
@@ -21,6 +23,10 @@ RUN git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.gi
     composer clear-cache --no-ansi
 
 FROM php:8.4-apache-bookworm AS seat
+
+# Optional GitHub token for composer VCS operations at runtime (e.g. plugin install)
+ARG COMPOSER_AUTH
+ENV COMPOSER_AUTH=${COMPOSER_AUTH}
 
 # OS Packages
 # - networking diagnose tools
@@ -37,7 +43,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     zip unzip libzip-dev libbz2-dev \
     mariadb-client libpq-dev redis-tools libpq5 postgresql-client \
     libpng-dev libjpeg62-turbo-dev libfreetype6-dev libwebp-dev \
-    jq libgmp-dev libicu-dev nano \
+    jq libgmp-dev libicu-dev nano git \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
@@ -57,7 +63,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
     --filename=composer && hash -r
 
 # User and Group
-RUN groupadd -r -g 200 seat && useradd --no-log-init -r -g seat -u 200 seat
+RUN groupadd -r -g 200 seat && useradd --no-log-init -r -g seat -u 200 seat && \
+    mkdir -p /home/seat/.cache/composer/vcs && \
+    chown -R seat:seat /home/seat
+
+# Force git to use HTTPS instead of SSH (prevent "git@github.com" failures in composer)
+# Use --system so it applies to the seat user at runtime
+RUN git config --system url."https://github.com/".insteadOf git@github.com:
 
 # Changing default Apache port to allow rootless container exploitation
 #
