@@ -9,14 +9,13 @@ RUN apk add --no-cache git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
     --filename=composer && hash -r
 
-# Clone SeAT from fork, configure VCS repos for custom packages, then install
+# Clone SeAT from fork, configure VCS repo for custom notifications package, then install
 COPY version /tmp/seat-version
 RUN git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.git /seat && \
     cd /seat && \
     mv /tmp/seat-version /seat/storage/version && \
     php -r "file_exists('.env') || copy('.env.example', '.env');" && \
     rm -f composer.lock && \
-    composer config repositories.eveapi vcs https://github.com/sabersma/eveseat-eveapi && \
     composer config repositories.notifications vcs https://github.com/sabersma/eveseat-notifications && \
     composer install --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs && \
     composer clear-cache --no-ansi
