@@ -9,9 +9,12 @@ RUN apk add --no-cache git && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
     --filename=composer && hash -r
 
-# Clone SeAT from fork, configure VCS repo for custom notifications package, then install
+# Clone SeAT from fork, configure VCS repos for custom packages, then install
+# Use CACHEBUST to force rebuild of this layer: --build-arg CACHEBUST=$(date +%s)
 COPY version /tmp/seat-version
-RUN git config --global url."https://github.com/".insteadOf git@github.com: && \
+ARG CACHEBUST=0
+RUN echo "Cache bust: ${CACHEBUST}" && \
+    git config --global url."https://github.com/".insteadOf git@github.com: && \
     git config --global url."https://".insteadOf git:// && \
     git clone --depth 1 --branch feature/sfi https://github.com/sabersma/seat.git /seat && \
     cd /seat && \
