@@ -41,27 +41,35 @@ function install_plugins() {
     plugins=$(echo -n ${SEAT_PLUGINS} | sed 's/,/ /g')
     if [ ! "$plugins" == "" ]; then
 
-        echo "Installing plugins: ${SEAT_PLUGINS}"
+        for plugin in $plugins; do
+            # Convert package name to vendor path (e.g., MattFalahe/Structure-Manager -> mattfalahe/structure-manager)
+            vendor_path="vendor/$(echo $plugin | tr '[:upper:]' '[:lower:]')"
 
-        # Why are we doing it like this?
-        #   ref: https://github.com/composer/composer/issues/1874
-        # Two-step approach avoids issues with dependency resolution when
-        # adding plugins to a project that uses VCS repositories.
+            if [ -d "$vendor_path" ] && [ -f "$vendor_path/composer.json" ]; then
+                echo "Plugin $plugin already installed, skipping."
+                continue
+            fi
 
-        # Step 1: Add plugin to composer.json and update lock file
-        if ! composer require ${plugins} --no-install --ignore-platform-reqs; then
-            echo "ERROR: Failed to require plugins: ${SEAT_PLUGINS}"
-            exit 1
-        fi
+            echo "Installing plugin: $plugin"
 
-        # Step 2: Install the plugin and update only its dependencies
-        if ! composer update ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs; then
-            echo "ERROR: Failed to update plugins: ${SEAT_PLUGINS}"
-            exit 1
-        fi
+            # Why are we doing it like this?
+            #   ref: https://github.com/composer/composer/issues/1874
 
-        # Regenerate autoloader so plugin classes are discoverable
-        composer dump-autoload
+            # Step 1: Add plugin to composer.json and update lock file
+            if ! composer require ${plugin} --no-install --ignore-platform-reqs; then
+                echo "ERROR: Failed to require plugin: ${plugin}"
+                exit 1
+            fi
+
+            # Step 2: Install the plugin and update only its dependencies
+            if ! composer update ${plugin} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs; then
+                echo "ERROR: Failed to update plugin: ${plugin}"
+                exit 1
+            fi
+
+            # Regenerate autoloader so plugin classes are discoverable
+            composer dump-autoload
+        done
     fi
 
     echo "Completed plugins processing"
