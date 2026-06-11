@@ -2,10 +2,20 @@
     "repositories": [
         {
             "type": "vcs",
+            "url": "https://github.com/sabersma/eveseat-eveapi"
+        },
+        {
+            "type": "vcs",
             "url": "https://github.com/sabersma/eveseat-notifications"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/sabersma/eveseat-web"
         }
     ],
     "require": {
-        "eveseat/notifications": "dev-feature/sfi as 5.0.x-dev"
+        "eveseat/eveapi": "dev-feature/sfi as 5.0.x-dev",
+        "eveseat/notifications": "dev-feature/sfi as 5.0.x-dev",
+        "eveseat/web": "dev-feature/sfi as 5.0.x-dev"
     }
 }

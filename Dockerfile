@@ -18,7 +18,9 @@ RUN git config --global url."https://github.com/".insteadOf git@github.com: && \
     mv /tmp/seat-version /seat/storage/version && \
     php -r "file_exists('.env') || copy('.env.example', '.env');" && \
     rm -f composer.lock && \
+    composer config repositories.eveapi vcs https://github.com/sabersma/eveseat-eveapi && \
     composer config repositories.notifications vcs https://github.com/sabersma/eveseat-notifications && \
+    composer config repositories.web vcs https://github.com/sabersma/eveseat-web && \
     composer install --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs && \
     composer clear-cache --no-ansi
 

@@ -43,10 +43,25 @@ function install_plugins() {
 
         echo "Installing plugins: ${SEAT_PLUGINS}"
 
-        # Install plugins in one step (composer issue #1874 is long fixed).
-        # Using require directly instead of require+update avoids triggering
-        # unnecessary VCS repository checks for already-installed packages.
-        composer require ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs --with-all-dependencies
+        # Why are we doing it like this?
+        #   ref: https://github.com/composer/composer/issues/1874
+        # Two-step approach avoids issues with dependency resolution when
+        # adding plugins to a project that uses VCS repositories.
+
+        # Step 1: Add plugin to composer.json and update lock file
+        if ! composer require ${plugins} --no-install --ignore-platform-reqs; then
+            echo "ERROR: Failed to require plugins: ${SEAT_PLUGINS}"
+            exit 1
+        fi
+
+        # Step 2: Install the plugin and update only its dependencies
+        if ! composer update ${plugins} --no-scripts --no-dev --no-ansi --no-progress --ignore-platform-reqs; then
+            echo "ERROR: Failed to update plugins: ${SEAT_PLUGINS}"
+            exit 1
+        fi
+
+        # Regenerate autoloader so plugin classes are discoverable
+        composer dump-autoload
     fi
 
     echo "Completed plugins processing"
